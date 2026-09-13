@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b71c1c">
+<title>BİM Ziyaret Raporu V13</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eceff1;color:#202124;font-family:Arial,sans-serif}
+button,select,input,textarea{font:inherit}
+button{border:0;border-radius:9px;padding:10px 12px;font-weight:700;cursor:pointer;background:#e0e0e0;color:#222}
+button.red{background:#b71c1c;color:#fff}button.green{background:#2e7d32;color:#fff}button.blue{background:#1565c0;color:#fff}button.dark{background:#424242;color:#fff}
+.top{position:sticky;top:0;z-index:30;background:#242424;color:#fff;padding:10px;border-bottom:1px solid #444}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:8px}.topline b{font-size:18px}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.toolbar button{min-height:44px}
+.toolbar select,.toolbar input{background:#3a3a3a;color:#fff;border:1px solid #666;border-radius:7px;padding:8px}
+.app{max-width:980px;margin:auto;padding:10px}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px #0002}
+.store-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.store-btn{text-align:left;background:#fff;border:1px solid #ddd;min-height:88px}
+.store-btn small{display:block;color:#666;margin-top:6px}.store-btn strong{font-size:16px}
+.paper{background:#fff;padding:18px 16px 50px;border-radius:10px}
+.date{font-size:14px;color:#555;margin-bottom:8px}
+.store-name{font-size:29px;font-weight:500;border-bottom:1px solid #777;min-height:48px;padding:5px 2px;outline:0}
+.title{font-size:19px;font-weight:800;text-decoration:underline;margin:20px 2px 8px}
+.rowitem{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;padding:7px 2px;border-bottom:1px solid #ddd;align-items:start}
+.item-edit,.note,.free{outline:0;min-height:34px;padding:6px;border-radius:6px;overflow-wrap:anywhere}
+.item-edit:focus,.note:focus,.free:focus,.store-name:focus{background:#f5f5f5;box-shadow:0 0 0 1px #aaa}
+.note{background:#fafafa;border-left:3px solid #bbb}.note:empty:before{content:"Not yaz...";color:#999}
+.item-tools{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}.item-tools button{padding:5px 7px;font-size:12px}
+.photo{max-width:180px;max-height:140px;border-radius:7px;margin:5px 5px 0 0;object-fit:cover}.photo-wrap{display:flex;flex-wrap:wrap}
+.free{min-height:120px;border:1px solid #ccc}
+.muted{color:#666;font-size:13px}.history-item{border:1px solid #ddd;border-radius:8px;padding:10px;margin:7px 0}
+.hidden{display:none!important}
+.modal{position:fixed;inset:0;background:#0009;z-index:60;display:flex;align-items:center;justify-content:center;padding:15px}
+.modalbox{background:#fff;border-radius:12px;max-width:720px;width:100%;max-height:90vh;overflow:auto;padding:15px}
+.modalbox h2,.modalbox h3{margin-top:0}
+.manage-row{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;margin:7px 0}
+.manage-row input{min-width:0;padding:9px;border:1px solid #bbb;border-radius:8px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 14px;border-radius:20px;z-index:100}
+#waRender{position:fixed;left:-30000px;top:0;width:794px;background:#ddd;z-index:-1}
+.waPage{width:794px;height:1123px;background:#fff;color:#111;font-family:Arial,sans-serif;overflow:hidden;position:relative}
+.waHeader{padding:24px 38px 4px}.waDate{font-size:14px;color:#555;margin-bottom:4px}.waStore{font-size:27px;border-bottom:1px solid #777;padding-bottom:6px}
+.waTitle{font-size:19px;font-weight:700;text-decoration:underline;margin:9px 38px 5px}
+.waTable{margin:0 38px;border-top:1px solid #ccc}
+.waRow{display:grid;grid-template-columns:44% 56%;border-bottom:1px solid #d7d7d7;font-size:14px;line-height:1.15;min-height:30px}
+.waCell{padding:4px 6px 4px 5px;overflow-wrap:anywhere;white-space:normal}.waNote{border-left:1px solid #d0d0d0}
+.waPhoto{display:block;max-width:125px;max-height:82px;object-fit:contain;margin-top:4px}
+.waPhotoGrid{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.waPhotoGrid .waPhoto{margin:0}
+
+.waFree{margin:0 38px;border:1px solid #bbb;min-height:95px;padding:8px;font-size:15px;line-height:1.3;white-space:pre-wrap}
+.waFooter{position:absolute;bottom:15px;left:0;right:0;text-align:center;color:#777;font-size:12px}
+@media(max-width:650px){.store-grid{grid-template-columns:1fr}.rowitem{grid-template-columns:1fr;gap:5px}.paper{border-radius:0;padding:14px 9px 40px}.store-name{font-size:26px}.manage-row{grid-template-columns:1fr auto auto}}
+@media print{body{background:#fff}.top,.no-print{display:none!important}.app{padding:0}.paper{box-shadow:none;border-radius:0;padding:8mm}.rowitem{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top no-print">
+  <div class="topline">
+    <b>🏪 BİM ZİYARET RAPORU</b>
+    <button onclick="home()">Mağazalar</button>
+  </div>
+  <div class="toolbar">
+    <button class="red" onclick="newVisit()">＋ Yeni Ziyaret / Kopyala</button>
+    <button onclick="save()">💾 Kaydet</button>
+    <button onclick="addItem()">＋ Madde</button>
+    <button onclick="addPhoto()">📷 Fotoğraf</button>
+    <button class="blue" onclick="showHistory()">📚 Geçmiş</button>
+    <button onclick="printPage()">📄 Sayfa / PDF</button>
+    <button class="green" onclick="shareWhatsAppPages()">📲 WhatsApp • Sayfalar</button>
+  </div>
+  <div class="toolbar">
+    <select onchange="formatSelection('fontName',this.value)"><option>Arial</option><option>Verdana</option><option>Tahoma</option><option>Georgia</option><option>Courier New</option></select>
+    <select onchange="formatSelection('fontSize',this.value)"><option value="2">Normal</option><option value="3">Orta</option><option value="4">Büyük</option><option value="5">Çok büyük</option><option value="6">Çok büyük+</option></select>
+    <input type="color" value="#202124" title="Yazı rengi" onchange="formatSelection('foreColor',this.value)">
+    <button onclick="formatSelection('bold')"><b>B</b></button>
+    <button onclick="formatSelection('underline')"><u>U</u></button>
+  </div>
+  <div class="muted" style="color:#bbb;margin-top:5px">Metni seç → yazı tipi, boyut veya renk değiştir. Sağ sütun not alanıdır.</div>
+</header>
+
+<div class="app"><div id="content"></div></div>
+<input id="photoInput" type="file" accept="image/*" capture="environment" hidden>
+<div id="modal" class="modal hidden no-print"><div id="modalbox" class="modalbox"></div></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const DEFAULT_STORES=["NAMIK KEMAL","ŞÜHEDA","ACISU","AKSOY","GÜRSEL","KOCAÇEŞME","ORHANİYE","KÖPRÜBAŞI"];
+const DEFAULTS=["Dış çevre temizliği","Dış cephe cam doğrama temizliği","Ekmek dolabı temizlik düzen","Ekmek dolabı SKT","Meyve sebze nitelik künye kontrol","Meyve sebze stand temizlik","Tavuk dolabı stok","Kırmızı et stok","Sütlük dolap stok düzen","SKT kontrol","Ulusal indirim sepeti","Raf düzen, temizlik, görsel bütünlük","Etiketleme ve etiket düzeni","Kasa yanı ve paketleme sadelik temizlik","Çikolata stant temizlik düzen","Z kart kontrol","Sıfır kritik sipariş kontrol","Spot düzen ve etiketleme","Spot - Grup spot kategorizasyon","Elektronik stand düzen","Depo düzen temizlik sadelik kontrol","Ofis - Mutfak - Wc temizlik","Demirbaş temizlik kontrol","Mantar pano düzen","Mantar pano evrak kontrol","Hareket görmeyen ürün kontrol"];
+const KEY="bim_visit_app_v11";
+let db=null,current=null,photoTarget=null;
+
+function esc(s){return String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]))}
+function plain(x){let d=document.createElement("div");d.innerHTML=x||"";return d.innerText||d.textContent||""}
+function safeFile(s){return String(s||"Magaza").replace(/[^a-z0-9çğıöşüÇĞİÖŞÜ_-]+/gi,"_").slice(0,45)}
+function now(){let d=new Date();return d.toLocaleDateString("tr-TR")+" "+d.toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit"})}
+function toast(t){let e=document.getElementById("toast");e.textContent=t;e.classList.remove("hidden");clearTimeout(window._toast);window._toast=setTimeout(()=>e.classList.add("hidden"),1800)}
+function makeDB(){return {stores:[...DEFAULT_STORES],template:DEFAULTS.map(x=>({html:esc(x)})),visits:[]}}
+function loadDB(){
+  let x=null;
+  try{x=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){}
+  if(!x||!Array.isArray(x.visits)||!Array.isArray(x.template)){x=makeDB()}
+  if(!Array.isArray(x.stores)||!x.stores.length)x.stores=[...DEFAULT_STORES];
+  // Old V9/V10 data migration when available.
+  try{
+    const old=JSON.parse(localStorage.getItem("bim_visit_app_v9")||"null");
+    if(old){
+      if(!x.visits.length && Array.isArray(old.visits))x.visits=old.visits;
+      if(Array.isArray(old.template)&&old.template.length)x.template=old.template;
+    }
+  }catch(e){}
+  db=x; persist();
+}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast("Telefon hafızası dolu olabilir")}}
+loadDB();
+
+function home(){
+  current=null;
+  const stores=[...db.stores];
+  let cards=stores.map((s,i)=>{
+    const vs=db.visits.filter(v=>v&&v.store===s);
+    const last=vs.length?vs[vs.length-1].created:"Henüz ziyaret yok";
+    return `<button class="store-btn" onclick="startStoreByIndex(${i})"><strong>${esc(s)}</strong><small>Son ziyaret: ${esc(last)}<br>Toplam ziyaret: ${vs.length}</small></button>`;
+  }).join("");
+  document.getElementById("content").innerHTML=
+   `<div class="card"><h2>Mağazalar</h2><p class="muted">Mağazayı seç. İlk ziyarette şablon açılır; sonraki ziyaretlerde yeni ziyaret/kopyalama yapabilirsin.</p>
+    <button class="dark" onclick="openStoreManager()">⚙️ Mağaza Ekle / Düzenle</button></div>
+    <div class="store-grid">${cards||'<div class="card">Henüz mağaza eklenmemiş.</div>'}</div>`;
+}
+function startStoreByIndex(i){if(!db.stores[i])return;startStore(db.stores[i])}
+function startStore(store){
+  const vs=db.visits.filter(v=>v&&v.store===store);
+  const last=vs.length?vs[vs.length-1]:null;
+  current=last?JSON.parse(JSON.stringify(last)):newVisitObject(store);
+  render();
+}
+function newVisitObject(store){
+  return {id:"v"+Date.now()+"_"+Math.random().toString(36).slice(2),store:store||"Mağaza adı",created:now(),
+    items:db.template.map(x=>({html:x.html,note:"",photos:[]})),isletme:"",genel:"",photos:[]};
+}
+function newVisit(){
+  if(!current){home();toast("Önce bir mağaza seç");return}
+  read();
+  const store=current.store;
+  const copy={id:"v"+Date.now()+"_"+Math.random().toString(36).slice(2),store,created:now(),
+    items:(current.items||[]).map(x=>({html:x.html,note:"",photos:[]})),
+    isletme:"",genel:"",photos:[]};
+  save();
+  current=copy;render();window.scrollTo(0,0);toast("Yeni ziyaret hazırlandı");
+}
+function read(){
+  if(!current)return;
+  const s=document.getElementById("storeName");if(s)current.store=s.innerText.trim()||"Mağaza adı";
+  const a=document.getElementById("isletme");if(a)current.isletme=a.innerHTML;
+  const g=document.getElementById("genel");if(g)current.genel=g.innerHTML;
+  document.querySelectorAll("[data-i][data-f]").forEach(e=>{
+    const i=+e.dataset.i;if(current.items[i])current.items[i][e.dataset.f]=e.innerHTML;
+  });
+}
+function render(){
+  if(!current)return;
+  const d=current;
+  let out=`<div class="paper">
+   <div class="date"><b>ZİYARET TARİH / SAAT:</b> ${esc(d.created)}</div>
+   <div class="store-name" id="storeName" contenteditable="true">${esc(d.store)}</div>
+   <div class="title">MAĞAZA KONTROL</div><div id="items">`;
+  (d.items||[]).forEach((x,i)=>{
+    out+=`<div class="rowitem">
+      <div><div class="item-edit" contenteditable="true" data-i="${i}" data-f="html">${x.html||""}</div>
+      <div class="item-tools no-print"><button onclick="itemPhoto(${i})">📷 Fotoğraf</button><button onclick="delItem(${i})">✕ Sil</button></div>
+      <div class="photo-wrap">${(x.photos||[]).map((p,j)=>`<img class="photo" src="${p}" onclick="delPhoto(${i},${j})" title="Silmek için dokun">`).join("")}</div></div>
+      <div class="note" contenteditable="true" data-i="${i}" data-f="note">${x.note||""}</div>
+    </div>`;
+  });
+  out+=`</div><div class="no-print" style="margin:10px 0"><button onclick="addItem()">＋ Kontrol maddesi ekle</button></div>
+    <div class="title">KONTROL NOKTASI İŞLETİMİ</div>
+    <div class="free" id="isletme" contenteditable="true">${d.isletme||""}</div>
+    <div class="title">GENEL</div>
+    <div class="free" id="genel" contenteditable="true">${d.genel||""}</div>
+    <div class="photo-wrap">${(d.photos||[]).map((p,j)=>`<img class="photo" src="${p}" onclick="delGeneralPhoto(${j})" title="Silmek için dokun">`).join("")}</div>
+   </div>`;
+  document.getElementById("content").innerHTML=out;
+  document.getElementById("storeName").oninput=e=>d.store=e.currentTarget.innerText;
+  document.getElementById("isletme").oninput=e=>d.isletme=e.currentTarget.innerHTML;
+  document.getElementById("genel").oninput=e=>d.genel=e.currentTarget.innerHTML;
+  document.querySelectorAll("[data-i][data-f]").forEach(e=>e.oninput=()=>d.items[+e.dataset.i][e.dataset.f]=e.innerHTML);
+}
+function save(){
+  if(!current)return;
+  read();
+  const i=db.visits.findIndex(v=>v.id===current.id);
+  const clone=JSON.parse(JSON.stringify(current));
+  if(i<0)db.visits.push(clone);else db.visits[i]=clone;
+  persist();toast("Ziyaret kaydedildi");
+}
+function addItem(){if(!current)return;read();current.items.push({html:"Yeni kontrol maddesi",note:"",photos:[]});render()}
+function delItem(i){if(!current)return;if(confirm("Bu madde silinsin mi?")){read();current.items.splice(i,1);render()}}
+function itemPhoto(i){if(!current)return;read();photoTarget={type:"item",i};document.getElementById("photoInput").value="";document.getElementById("photoInput").click()}
+function addPhoto(){if(!current)return;read();photoTarget={type:"general"};document.getElementById("photoInput").value="";document.getElementById("photoInput").click()}
+document.getElementById("photoInput").onchange=e=>{
+  const f=e.target.files&&e.target.files[0];if(!f||!photoTarget)return;
+  const rd=new FileReader();
+  rd.onload=()=>{if(photoTarget.type==="item"){current.items[photoTarget.i].photos=current.items[photoTarget.i].photos||[];current.items[photoTarget.i].photos.push(rd.result)}else{current.photos=current.photos||[];current.photos.push(rd.result)};persist();render();toast("Fotoğraf eklendi")};
+  rd.readAsDataURL(f);
+};
+function delPhoto(i,j){if(confirm("Fotoğraf silinsin mi?")){read();current.items[i].photos.splice(j,1);render()}}
+function delGeneralPhoto(j){if(confirm("Fotoğraf silinsin mi?")){read();current.photos.splice(j,1);render()}}
+function formatSelection(cmd,val){document.execCommand(cmd,false,val||null);if(current){read();persist()}}
+
+function openStoreManager(){
+  const m=document.getElementById("modal"),box=document.getElementById("modalbox");
+  let rows=db.stores.map((s,i)=>`<div class="manage-row"><input id="storeEdit${i}" value="${esc(s)}"><button class="blue" onclick="renameStore(${i})">Kaydet</button><button class="red" onclick="deleteStore(${i})">Sil</button></div>`).join("");
+  box.innerHTML=`<h2>⚙️ Mağaza Ekle / Düzenle</h2>
+    <p class="muted">Buradan mağaza adlarını değiştirebilir veya yeni mağaza ekleyebilirsin. Ziyaret kayıtları mevcut adlarıyla korunur.</p>
+    <div>${rows}</div>
+    <hr><div style="display:flex;gap:6px"><input id="newStoreName" placeholder="Yeni mağaza adı" style="flex:1;padding:10px;border:1px solid #bbb;border-radius:8px"><button class="green" onclick="addStore()">＋ Mağaza Ekle</button></div>
+    <div style="margin-top:12px"><button onclick="closeModal()">Kapat</button></div>`;
+  m.classList.remove("hidden");
+}
+function closeModal(){document.getElementById("modal").classList.add("hidden")}
+function renameStore(i){
+  const inp=document.getElementById("storeEdit"+i),name=(inp.value||"").trim();
+  if(!name){toast("Mağaza adı boş olamaz");return}
+  const old=db.stores[i];if(old===name){toast("Değişiklik yok");return}
+  db.stores[i]=name;
+  db.visits.forEach(v=>{if(v.store===old)v.store=name});
+  if(current&&current.store===old)current.store=name;
+  persist();openStoreManager();toast("Mağaza adı güncellendi");
+}
+function addStore(){
+  const e=document.getElementById("newStoreName"),name=(e.value||"").trim();
+  if(!name){toast("Mağaza adı yaz");return}
+  if(db.stores.some(s=>s.toLocaleLowerCase("tr-TR")===name.toLocaleLowerCase("tr-TR"))){toast("Bu mağaza zaten var");return}
+  db.stores.push(name);persist();openStoreManager();toast("Mağaza eklendi");
+}
+function deleteStore(i){
+  const name=db.stores[i];
+  if(!confirm(`"${name}" mağazası listeden silinsin mi?\\nMevcut ziyaret kayıtları silinmez.`))return;
+  db.stores.splice(i,1);persist();openStoreManager();toast("Mağaza listeden kaldırıldı");
+}
+
+function showHistory(){
+  if(!current){toast("Önce bir mağaza seç");return}
+  const vs=db.visits.filter(v=>v.store===current.store).slice().reverse();
+  const box=document.getElementById("modalbox");
+  box.innerHTML=`<h2>📚 ${esc(current.store)} — Geçmiş</h2>`+
+    (vs.length?vs.map(v=>`<div class="history-item"><b>${esc(v.created)}</b><br><span class="muted">${v.items?.length||0} kontrol maddesi</span><div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap"><button onclick="openVisit('${v.id}')">Aç</button><button class="red" onclick="deleteVisit('${v.id}')">Sil</button></div></div>`).join(""):'<p>Bu mağazada kayıtlı ziyaret yok.</p>')+
+    `<button onclick="closeModal()">Kapat</button>`;
+  document.getElementById("modal").classList.remove("hidden");
+}
+function openVisit(id){const v=db.visits.find(x=>x.id===id);if(!v)return;current=JSON.parse(JSON.stringify(v));closeModal();render()}
+function deleteVisit(id){if(!confirm("Bu ziyaret kaydı silinsin mi?"))return;db.visits=db.visits.filter(v=>v.id!==id);persist();showHistory();toast("Ziyaret silindi")}
+
+function printPage(){if(!current)return;save();window.print()}
+
+function svgEsc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
+function wrapSvgText(text,maxChars){
+  text=plain(text||'').replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
+  if(!text)return [''];
+  const words=text.split(' '), out=[]; let line='';
+  for(const w of words){
+    if((line?line.length+1:0)+w.length<=maxChars) line+=(line?' ':'')+w;
+    else { if(line)out.push(line); line=w; }
+  }
+  if(line)out.push(line); return out;
+}
+function makeSvgPage(rows, sectionData, pageNo, total){
+  const W=794,H=1123,ML=28,MR=28,TOP=26,BOTTOM=34,usable=W-ML-MR,gap=8,col=usable*0.44,noteW=usable-col-gap;
+  let y=TOP, out=[];
+  out.push(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}"><rect width="100%" height="100%" fill="white"/>`);
+  out.push(`<text x="${ML}" y="${y+13}" font-family="Arial" font-size="12" fill="#555">ZİYARET TARİH / SAAT: ${svgEsc(current.created)}</text>`); y+=20;
+  out.push(`<text x="${ML}" y="${y+22}" font-family="Arial" font-size="26" fill="#222">${svgEsc(current.store)}</text>`); y+=34;
+  out.push(`<line x1="${ML}" y1="${y}" x2="${W-MR}" y2="${y}" stroke="#777"/>`); y+=27;
+  out.push(`<text x="${ML}" y="${y+17}" font-family="Arial" font-size="18" font-weight="bold" text-decoration="underline" fill="#222">MAĞAZA KONTROL${pageNo>1?' — DEVAM':''}</text>`); y+=30;
+  function addRow(r,idx){
+    const left=wrapSvgText((idx?idx+'. ':'')+plain(r.html||''),39), right=wrapSvgText(plain(r.note||''),50);
+    const photoH=(r.photos&&r.photos.length)?92:0, lineH=16;
+    let h=Math.max(left.length,right.length)*lineH+10+photoH;
+    if(h<34)h=34;
+    if(y+h>H-BOTTOM-40)return false;
+    out.push(`<rect x="${ML}" y="${y}" width="${col}" height="${h}" fill="white" stroke="#cfcfcf"/>`);
+    out.push(`<rect x="${ML+col+gap}" y="${y}" width="${noteW}" height="${h}" fill="white" stroke="#cfcfcf"/>`);
+    left.forEach((t,k)=>out.push(`<text x="${ML+7}" y="${y+18+k*lineH}" font-family="Arial" font-size="11" fill="#222">${svgEsc(t)}</text>`));
+    right.forEach((t,k)=>out.push(`<text x="${ML+col+gap+7}" y="${y+18+k*lineH}" font-family="Arial" font-size="11" fill="#222">${svgEsc(t)}</text>`));
+    if(r.photos&&r.photos.length){let px=ML+7,py=y+Math.max(left.length,right.length)*lineH+2; for(const p of r.photos.slice(0,2)){out.push(`<image href="${svgEsc(p)}" x="${px}" y="${py}" width="110" height="78" preserveAspectRatio="xMidYMid meet"/>`);px+=116;}}
+    y+=h+6; return true;
+  }
+  rows.forEach(r=>addRow(r,r.idx));
+  function section(title,text){
+    if(!text)return true;
+    const lines=wrapSvgText(text,98), h=lines.length*16+18;
+    if(y+h>H-BOTTOM-40)return false;
+    out.push(`<text x="${ML}" y="${y+17}" font-family="Arial" font-size="16" font-weight="bold" text-decoration="underline" fill="#222">${svgEsc(title)}</text>`); y+=24;
+    out.push(`<rect x="${ML}" y="${y}" width="${usable}" height="${h}" fill="white" stroke="#cfcfcf"/>`);
+    lines.forEach((t,k)=>out.push(`<text x="${ML+7}" y="${y+17+k*16}" font-family="Arial" font-size="11" fill="#222">${svgEsc(t)}</text>`)); y+=h+12; return true;
+  }
+  sectionData.forEach(x=>section(x[0],x[1]));
+  out.push(`<text x="${W/2}" y="${H-14}" text-anchor="middle" font-family="Arial" font-size="9" fill="#aaa">${svgEsc(current.store)} • ${svgEsc(current.created)} • Sayfa ${pageNo}/${total}</text></svg>`);
+  return out.join('');
+}
+function buildPages(){
+  const rows=(current.items||[]).map((r,i)=>({html:r.html,note:r.note,photos:r.photos||[],idx:i+1}));
+  const pages=[], chunks=[]; let chunk=[];
+  function estimate(r){const l=wrapSvgText((r.idx+'. '+plain(r.html||'')),39).length, n=wrapSvgText(plain(r.note||''),50).length; return Math.max(34,Math.max(l,n)*16+10+(r.photos&&r.photos.length?92:0))+6;}
+  let h=117;
+  for(const r of rows){ if(h+estimate(r)>1000 && chunk.length){chunks.push(chunk);chunk=[];h=117;} chunk.push(r);h+=estimate(r); }
+  if(chunk.length)chunks.push(chunk);
+  if(!chunks.length)chunks.push([]);
+  const last=chunks.length-1;
+  // Put the free-text sections on the last page. If they do not fit, append a dedicated page.
+  const sections=[['KONTROL NOKTASI İŞLETİMİ',current.isletme],['GENEL',current.genel]];
+  for(let i=0;i<chunks.length;i++){
+    pages.push(makeSvgPage(chunks[i],i===last?sections:[],i+1,chunks.length));
+  }
+  return {pages};
+}
+
+async function pageToJpeg(svgText,pageIndex){
+  const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgText);
+  const img=new Image(); img.decoding='async'; img.src=url;
+  await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('SVG görüntülenemedi'))});
+  const c=document.createElement('canvas'); c.width=1588;c.height=2246;
+  const ctx=c.getContext('2d'); ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);
+  return await new Promise((res,rej)=>c.toBlob(b=>b?res(new File([b],`BIM_${safeFile(current.store)}_Sayfa_${pageIndex+1}.jpg`,{type:'image/jpeg'})):rej(new Error('JPEG oluşturulamadı')),'image/jpeg',.92));
+}
+
+async function shareWhatsAppPages(){
+  if(!current)return;
+  save();toast("WhatsApp sayfaları hazırlanıyor…");
+  let built;
+  try{
+    built=buildPages();
+    const files=[];
+    for(let i=0;i<built.pages.length;i++) files.push(await pageToJpeg(built.pages[i],i));
+
+    if(navigator.share && navigator.canShare && navigator.canShare({files})){
+      try{
+        await navigator.share({title:`BİM ${current.store} Ziyaret Raporu`,text:`${current.store} • ${current.created}`,files});
+        return;
+      }catch(e){ if(e && e.name==='AbortError') return; }
+    }
+
+    const box=document.getElementById("modal"),inner=document.getElementById("modalbox");
+    inner.innerHTML=`<h2>📲 WhatsApp sayfaları hazır</h2><p class="muted">Tüm sayfaları tek seferde paylaşma desteklenmiyorsa, aşağıdaki butonlarla sayfaları ayrı ayrı WhatsApp'a gönderebilirsin.</p>`;
+    const all=document.createElement("button");all.className="green";all.textContent="📲 Tüm sayfaları paylaş";all.onclick=async()=>{try{await navigator.share({title:`BİM ${current.store} Ziyaret Raporu`,files})}catch(e){}};inner.appendChild(all);
+    files.forEach((file,i)=>{
+      const block=document.createElement("div");block.style.cssText="border:1px solid #ddd;border-radius:8px;padding:8px;margin:10px 0";
+      const im=document.createElement("img");im.src=URL.createObjectURL(file);im.style.cssText="width:100%;display:block";
+      const bt=document.createElement("button");bt.className="green";bt.style.marginTop="7px";bt.textContent=`📲 Sayfa ${i+1} WhatsApp`;bt.onclick=async()=>{try{await navigator.share({title:`BİM ${current.store} Sayfa ${i+1}`,files:[file]})}catch(e){}};
+      block.append(im,bt);inner.appendChild(block);
+    });
+    const cl=document.createElement("button");cl.textContent="Kapat";cl.onclick=closeModal;inner.appendChild(cl);box.classList.remove("hidden");
+  }catch(e){
+    
+    console.error(e);toast("Sayfalar oluşturulamadı. Sayfa / PDF seçeneğini kullanabilirsin.");
+  }
+}
+
+home();
+</script>
+</body>
+</html>
